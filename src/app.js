@@ -60,6 +60,7 @@ app.get('/bookmarks/:id',(req,res) => {
   res.json(bookmark)
 })
 
+/////////////////POST BOOKMARKS////////////////////
 app.post('/bookmarks',(req,res) => {
   const { title, url, description, rating } = req.body;
   const id = uuid();
@@ -71,6 +72,20 @@ app.post('/bookmarks',(req,res) => {
 
 
   res.status(201).location(`http://localhost:8000/bookmarks/${id}`).json(bookmark)
+})
+
+///////////////DELETE BOOKMARKS////////////////////
+app.delete('/bookmarks/:id',(req, res) => {
+  const { id } = req.params;
+  const bookmarksIndex = store.bookmarks.findIndex(bm => bm.id == id)
+
+  if(bookmarksIndex === -1){
+    logger.error(`Bookmarks with id ${id} not found`)
+    return res.status(404).send('not found')
+  }
+  store.bookmarks.splice(bookmarksIndex,1)
+  logger.info(`bookmarks with id ${id} deleted`)
+  res.status(204).end()
 })
 
 app.use(function errorHandler(error, req, res, next) {

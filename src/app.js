@@ -3,12 +3,10 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
-const winston = require('winston')
-const uuid = require('uuid/v4')
 const { NODE_ENV } = require('./config')
+const bookmarksRouter = require('./bookmark-router')
 
 const app = express()
-const store = require('../store')
 
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
@@ -19,17 +17,7 @@ app.use(helmet())
 app.use(cors())
 app.use(express.json())
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({filename: 'info.log'})
-  ]
-})
 
-app.get('/', (req,res) => {
-    res.send('Hello, world!')
-})
 
 app.use(function validateBearerToken(req, res, next) {
   const apiToken = process.env.API_TOKEN
@@ -43,50 +31,9 @@ app.use(function validateBearerToken(req, res, next) {
   // move to the next middleware
   next()
 })
-//////////////////GET BOOKMARKS///////////////////////
-app.get('/bookmarks', (req,res) => {
-  res.json(store.bookmarks)
-})
 
-app.get('/bookmarks/:id',(req,res) => {
-  const { id } = req.params;
-  const bookmark = store.bookmarks.find(bm => bm.id == id)
-  console.log(bookmark)
-  if(!bookmark){
-    logger.error(`Bookmark with id ${id} not found`)
-    return res.status(404).send('Bookmark Not Found')
-  }
+app.use('/bookmarks', bookmarksRouter)
 
-  res.json(bookmark)
-})
-
-/////////////////POST BOOKMARKS////////////////////
-app.post('/bookmarks',(req,res) => {
-  const { title, url, description, rating } = req.body;
-  const id = uuid();
-
-  const bookmark = { id, title, url, description, rating }
-  store.bookmarks.push(bookmark)
-
-  logger.info(`Bookmark with id ${id}  created`)
-
-
-  res.status(201).location(`http://localhost:8000/bookmarks/${id}`).json(bookmark)
-})
-
-///////////////DELETE BOOKMARKS////////////////////
-app.delete('/bookmarks/:id',(req, res) => {
-  const { id } = req.params;
-  const bookmarksIndex = store.bookmarks.findIndex(bm => bm.id == id)
-
-  if(bookmarksIndex === -1){
-    logger.error(`Bookmarks with id ${id} not found`)
-    return res.status(404).send('not found')
-  }
-  store.bookmarks.splice(bookmarksIndex,1)
-  logger.info(`bookmarks with id ${id} deleted`)
-  res.status(204).end()
-})
 
 app.use(function errorHandler(error, req, res, next) {
        let response

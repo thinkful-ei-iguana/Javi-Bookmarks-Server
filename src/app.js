@@ -43,9 +43,21 @@ app.use(function validateBearerToken(req, res, next) {
   // move to the next middleware
   next()
 })
-
+//////////////////GET BOOKMARKS///////////////////////
 app.get('/bookmarks', (req,res) => {
   res.json(store.bookmarks)
+})
+
+app.get('/bookmarks/:id',(req,res) => {
+  const { id } = req.params;
+  const bookmark = store.bookmarks.find(bm => bm.id == id)
+  console.log(bookmark)
+  if(!bookmark){
+    logger.error(`Bookmark with id ${id} not found`)
+    return res.status(400).send('Bookmark Not Found')
+  }
+
+  res.json(bookmark)
 })
 
 app.use(function errorHandler(error, req, res, next) {

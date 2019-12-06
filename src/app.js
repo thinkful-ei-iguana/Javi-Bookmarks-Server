@@ -54,10 +54,23 @@ app.get('/bookmarks/:id',(req,res) => {
   console.log(bookmark)
   if(!bookmark){
     logger.error(`Bookmark with id ${id} not found`)
-    return res.status(400).send('Bookmark Not Found')
+    return res.status(404).send('Bookmark Not Found')
   }
 
   res.json(bookmark)
+})
+
+app.post('/bookmarks',(req,res) => {
+  const { title, url, description, rating } = req.body;
+  const id = uuid();
+
+  const bookmark = { id, title, url, description, rating }
+  store.bookmarks.push(bookmark)
+
+  logger.info(`Bookmark with id ${id}  created`)
+
+
+  res.status(201).location(`http://localhost:8000/bookmarks/${id}`).json(bookmark)
 })
 
 app.use(function errorHandler(error, req, res, next) {

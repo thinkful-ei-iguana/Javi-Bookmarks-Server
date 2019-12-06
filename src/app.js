@@ -44,7 +44,9 @@ app.use(function validateBearerToken(req, res, next) {
   next()
 })
 
-
+app.get('/bookmarks', (req,res) => {
+  res.json(store.bookmarks)
+})
 
 app.use(function errorHandler(error, req, res, next) {
        let response
